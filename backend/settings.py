@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     # Project apps
     'users',
     'notes',
+    'admin_panel',
 ]
 
 MIDDLEWARE = [

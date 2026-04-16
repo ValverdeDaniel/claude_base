@@ -64,4 +64,11 @@ export const updateNote = (id, data) =>
 export const deleteNote = (id) =>
   apiClient.delete(`/notes/${id}/`);
 
+// Admin - Test Runner
+export const getTests = () =>
+  apiClient.get('/admin/tests/');
+
+export const runTests = (testIds = []) =>
+  apiClient.post('/admin/tests/run/', { test_ids: testIds });
+
 export default apiClient;

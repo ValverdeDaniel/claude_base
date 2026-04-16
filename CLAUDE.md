@@ -47,6 +47,13 @@ All auth endpoints are under `/api/auth/`:
 | POST | `/api/auth/request-password-reset/` | No | Request reset email |
 | POST | `/api/auth/reset-password/` | No | Reset password with token |
 
+Admin panel endpoints are under `/api/admin/` (app: `admin_panel`):
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/api/admin/tests/` | Yes | List all discovered tests |
+| POST | `/api/admin/tests/run/` | Yes | Run tests (all or by ID) |
+
 ## Notes
 
 - Do not modify `docker-compose.yml`, `Dockerfile`, or `start.sh` unless explicitly asked

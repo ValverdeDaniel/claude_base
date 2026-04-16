@@ -9,6 +9,7 @@ function Navbar() {
       <Link to="/" className="navbar-brand">Notes</Link>
       {isAuthenticated ? (
         <div className="navbar-user">
+          <Link to="/admin">Admin</Link>
           <Link to="/profile">{user?.username}</Link>
           <button onClick={logout} className="btn btn-danger">
             Logout

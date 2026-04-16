@@ -8,6 +8,7 @@ import ResetPassword from './components/ResetPassword';
 import RequireAuth from './components/RequireAuth';
 import NotesPage from './components/NotesPage';
 import ProfilePage from './components/ProfilePage';
+import AdminPage from './components/AdminPage';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
             {/* Protected routes */}
             <Route path="/" element={<RequireAuth><NotesPage /></RequireAuth>} />
             <Route path="/profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
+            <Route path="/admin" element={<RequireAuth><AdminPage /></RequireAuth>} />
 
             {/* Catch all */}
             <Route path="*" element={<Navigate to="/" />} />
