@@ -1,0 +1,536 @@
+Create a full-stack web application starter project with the following stack and structure. This is a base template for building any web app — set up the infrastructure, authentication, and project skeleton so I can start building features immediately.
+
+## Stack
+
+- **Backend**: Django 4.2 + Django REST Framework
+- **Frontend**: React 19 with React Router
+- **Database**: PostgreSQL 15
+- **Containerization**: Docker + docker-compose
+- **Deployment target**: Railway (Docker-based)
+
+---
+
+## Project Structure
+
+Create the following directory structure:
+
+```
+project_root/
+├── backend/                    # Django project (settings, urls, wsgi, asgi)
+│   ├── __init__.py
+│   ├── settings.py
+│   ├── urls.py
+│   ├── wsgi.py
+│   └── asgi.py
+├── users/                      # Django app for authentication & user management
+│   ├── __init__.py
+│   ├── models.py
+│   ├── views.py
+│   ├── serializers.py
+│   ├── urls.py
+│   ├── admin.py
+│   └── apps.py
+├── frontend/                   # React application
+│   ├── public/
+│   ├── src/
+│   │   ├── App.js
+│   │   ├── index.js
+│   │   ├── contexts/
+│   │   │   └── UserContext.js
+│   │   ├── services/
+│   │   │   └── api.js
+│   │   ├── components/
+│   │   │   ├── LoginForm.js
+│   │   │   ├── SignupForm.js
+│   │   │   └── Navbar.js
+│   │   └── styles/
+│   ├── package.json
+│   ├── Dockerfile.dev
+│   └── .env
+├── docker-compose.yml
+├── Dockerfile
+├── start.sh
+├── requirements.txt
+├── manage.py
+├── .env.example
+├── .gitignore
+└── CLAUDE.md
+```
+
+---
+
+## Docker Configuration
+
+### docker-compose.yml
+
+Create a docker-compose.yml with 3 services:
+
+**db (PostgreSQL 15)**:
+- Image: postgres:15
+- Port: 5432
+- Environment: POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD (use env vars)
+- Volume: postgres_data:/var/lib/postgresql/data/
+- Health check: pg_isready -U $POSTGRES_USER every 5s, 5 retries
+
+**backend (Django)**:
+- Build from ./Dockerfile
+- Port: 8000
+- Depends on: db (condition: service_healthy)
+- Volume: .:/app (for hot reload during development)
+- Environment variables:
+  - ENVIRONMENT=local
+  - DB_NAME, DB_USER, DB_PASSWORD, DB_HOST=db, DB_PORT=5432
+  - DJANGO_DEBUG=True
+  - DJANGO_SECRET_KEY
+- Restart: unless-stopped
+
+**frontend (React)**:
+- Build from ./frontend/Dockerfile.dev
+- Port: 3000
+- Volume: ./frontend:/app and /app/node_modules (anonymous volume to preserve node_modules)
+- Environment: REACT_APP_API_URL=http://localhost:8000/api
+- Depends on: backend
+
+Declare a named volume: postgres_data
+
+### Dockerfile (Backend)
+
+- Base: python:3.12-slim
+- Install system deps: gcc, postgresql-client
+- Set PYTHONDONTWRITEBYTECODE=1 and PYTHONUNBUFFERED=1
+- Create a non-root user (appuser, UID 1000)
+- Copy requirements.txt and install dependencies
+- Copy project code
+- Expose port 8000
+- Entrypoint: /app/start.sh
+
+### frontend/Dockerfile.dev
+
+- Base: node:20-alpine
+- Workdir: /app
+- Copy package.json and package-lock.json, run npm install
+- Copy source code
+- Expose port 3000
+- CMD: npm start
+
+---
+
+## start.sh (Entrypoint Script)
+
+Create a bash script that handles both local and production startup:
+
+**Local mode** (ENVIRONMENT=local or unset):
+```bash
+#!/bin/bash
+set -e
+
+# Wait for PostgreSQL to be ready
+until PGPASSWORD=$DB_PASSWORD psql -h "$DB_HOST" -U "$DB_USER" -d "$DB_NAME" -c '\q' 2>/dev/null; do
+  echo "Waiting for PostgreSQL..."
+  sleep 1
+done
+echo "PostgreSQL is ready."
+
+python manage.py migrate
+exec python manage.py runserver 0.0.0.0:8000
+```
+
+**Production mode** (ENVIRONMENT=production):
+```bash
+python manage.py migrate --noinput
+python manage.py collectstatic --noinput
+exec gunicorn --bind :${PORT:-8000} --workers 4 --threads 2 --timeout 60 \
+  --access-logfile - --error-logfile - --log-level info \
+  backend.wsgi:application
+```
+
+Make the script detect ENVIRONMENT and branch accordingly.
+
+---
+
+## Backend: Django Settings (backend/settings.py)
+
+### Database
+```python
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': os.environ.get('DB_NAME', 'app_db'),
+        'USER': os.environ.get('DB_USER', 'app_user'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'secret123'),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
+    }
+}
+```
+
+### Installed Apps
+```python
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    # Third party
+    'rest_framework',
+    'rest_framework.authtoken',
+    'corsheaders',
+    # Project apps
+    'users',
+]
+```
+
+### Middleware
+Include corsheaders.middleware.CorsMiddleware BEFORE CommonMiddleware.
+
+### REST Framework
+```python
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '200/hour',
+        'user': '3000/hour',
+    }
+}
+```
+
+### CORS
+- Development: CORS_ALLOW_ALL_ORIGINS = True (when DEBUG=True)
+- Production: CORS_ALLOWED_ORIGINS list from environment variable
+
+### Static Files
+- STATIC_URL = '/static/'
+- STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+### Security
+- SECRET_KEY from environment variable with a dev fallback
+- DEBUG from DJANGO_DEBUG env var (default False)
+- ALLOWED_HOSTS: ['*'] for dev, configured list for production
+
+### Email (basic setup for password reset)
+```python
+if os.environ.get('EMAIL_HOST_USER'):
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+    EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+    EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+```
+
+---
+
+## Backend: Users App
+
+### Models (users/models.py)
+
+**UserProfile** — extends Django User via OneToOneField:
+- user (OneToOneField to auth.User, on_delete CASCADE)
+- created_at (DateTimeField, auto_now_add)
+- updated_at (DateTimeField, auto_now)
+
+Create the profile automatically when a User is created using a post_save signal.
+
+**PasswordResetToken** — for email-based password reset:
+- user (ForeignKey to User)
+- token (CharField, unique, max_length=64)
+- created_at (DateTimeField, auto_now_add)
+- used (BooleanField, default=False)
+- Methods: is_valid() checks expiry (24 hours) and used status, mark_as_used(), class method generate_token()
+
+### Serializers (users/serializers.py)
+
+- **UserSerializer**: id, username, email
+- **UserProfileSerializer**: user fields + profile fields
+- **LoginSerializer**: username, password (write_only)
+- **SignupSerializer**: username, email, password (write_only) — validate email uniqueness
+
+### Views (users/views.py)
+
+**LoginView** (AllowAny):
+- POST: Authenticate with username and password
+- Return: { token, user: { id, username, email } }
+- Handle invalid credentials with 401
+
+**SignupView** (AllowAny):
+- POST: Create user with username, email, password
+- Auto-create DRF Token
+- Return: { token, user: { id, username, email } }
+- Validate: unique username, unique email, password min length 8
+
+**ProfileView** (IsAuthenticated):
+- GET: Return current user profile
+- PATCH: Update allowed profile fields
+
+**ChangePasswordView** (IsAuthenticated):
+- POST: Validate old password, set new password
+- Return: success message
+
+**RequestPasswordResetView** (AllowAny):
+- POST: Accept email, look up user, generate PasswordResetToken, send email with reset link
+- Always return 200 (don't reveal if email exists)
+- Reset link format: {FRONTEND_URL}/reset-password?token={token}
+
+**ResetPasswordView** (AllowAny):
+- POST: Accept token and new password, validate token, reset password, mark token used
+- Return: success or error
+
+**LogoutView** (IsAuthenticated):
+- POST: Delete the user's auth token
+- Return: success message
+
+### URLs (users/urls.py)
+```python
+urlpatterns = [
+    path('login/', LoginView.as_view()),
+    path('signup/', SignupView.as_view()),
+    path('logout/', LogoutView.as_view()),
+    path('profile/', ProfileView.as_view()),
+    path('change-password/', ChangePasswordView.as_view()),
+    path('request-password-reset/', RequestPasswordResetView.as_view()),
+    path('reset-password/', ResetPasswordView.as_view()),
+]
+```
+
+### Main URLs (backend/urls.py)
+```python
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('api/auth/', include('users.urls')),
+]
+```
+
+---
+
+## Frontend: React Application
+
+### Dependencies (package.json)
+
+```json
+{
+  "dependencies": {
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^7.6.0",
+    "axios": "^1.10.0",
+    "react-icons": "^5.5.0"
+  },
+  "proxy": "http://backend:8000"
+}
+```
+
+Use Create React App to initialize, then add the above dependencies.
+
+### API Service (frontend/src/services/api.js)
+
+Create an axios instance:
+- baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8000/api'
+- Request interceptor: attach token from localStorage as "Authorization: Token {token}"
+- Response interceptor: on 401, clear token from localStorage and redirect to /login
+
+Export functions:
+```javascript
+export const login = (username, password) => apiClient.post('/auth/login/', { username, password });
+export const signup = (username, email, password) => apiClient.post('/auth/signup/', { username, email, password });
+export const logout = () => apiClient.post('/auth/logout/');
+export const getProfile = () => apiClient.get('/auth/profile/');
+export const changePassword = (oldPassword, newPassword) => apiClient.post('/auth/change-password/', { old_password: oldPassword, new_password: newPassword });
+export const requestPasswordReset = (email) => apiClient.post('/auth/request-password-reset/', { email });
+export const resetPassword = (token, password) => apiClient.post('/auth/reset-password/', { token, password });
+```
+
+### UserContext (frontend/src/contexts/UserContext.js)
+
+Create a React context that:
+- Stores user state: { user, loading, isAuthenticated }
+- On mount: check for token in localStorage, fetch profile if token exists
+- Provides: login(), signup(), logout(), refreshProfile()
+- login/signup: store token, fetch profile, update state
+- logout: remove token, clear state
+- Export useUser() hook for consuming components
+
+### Components
+
+**LoginForm.js**:
+- Form with username and password fields
+- On submit: call login(), redirect to "/" on success
+- Show error message on failure
+- Link to /signup and /request-password-reset
+- Style: centered card, dark theme, clean and minimal
+
+**SignupForm.js**:
+- Form with username, email, password, confirm password fields
+- Validate: passwords match, email format, password min length
+- On submit: call signup(), redirect to "/" on success
+- Link to /login
+
+**Navbar.js**:
+- Show app name/logo on left
+- If authenticated: show username and logout button
+- If not authenticated: show login/signup links
+- Style: dark background, fixed top
+
+**RequestPasswordReset.js**:
+- Form with email field
+- Submit sends reset email
+- Show success message regardless (security)
+
+**ResetPassword.js**:
+- Read token from URL query params
+- Form with new password and confirm password
+- On submit: call resetPassword(), redirect to /login on success
+
+### App.js (Routing)
+
+```jsx
+<UserProvider>
+  <Router>
+    <Navbar />
+    <Routes>
+      {/* Public routes */}
+      <Route path="/login" element={<LoginForm />} />
+      <Route path="/signup" element={<SignupForm />} />
+      <Route path="/request-password-reset" element={<RequestPasswordReset />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+
+      {/* Protected routes */}
+      <Route path="/" element={<RequireAuth><HomePage /></RequireAuth>} />
+      <Route path="/profile" element={<RequireAuth><ProfilePage /></RequireAuth>} />
+
+      {/* Catch all */}
+      <Route path="*" element={<Navigate to="/" />} />
+    </Routes>
+  </Router>
+</UserProvider>
+```
+
+**RequireAuth component**: If not authenticated, redirect to /login. Otherwise render children.
+
+**HomePage.js**: Simple landing page that says "Welcome, {username}!" — placeholder for the actual app content.
+
+### Styling
+
+Use a dark theme with minimal CSS:
+- Background: #0a0a0a (page), #1a1a1a (cards/surfaces)
+- Text: #ffffff (primary), #aaaaaa (secondary)
+- Primary accent: #218aff (blue)
+- Error: #ef4444 (red)
+- Success: #10b981 (green)
+- Border: #333333
+- Inputs: dark background (#1a1a1a), white text, border on focus
+- Buttons: filled primary blue, hover darken
+
+Create a single global CSS file with these base styles. Keep it simple — no CSS framework needed.
+
+---
+
+## Environment Variables
+
+### .env.example
+```bash
+# Django
+DJANGO_SECRET_KEY=change-me-to-a-real-secret-key
+DJANGO_DEBUG=True
+ENVIRONMENT=local
+
+# Database
+DB_NAME=app_db
+DB_USER=app_user
+DB_PASSWORD=secret123
+DB_HOST=db
+DB_PORT=5432
+
+# Email (optional — falls back to console output if not set)
+EMAIL_HOST=smtp.gmail.com
+EMAIL_HOST_USER=
+EMAIL_HOST_PASSWORD=
+EMAIL_PORT=587
+DEFAULT_FROM_EMAIL=
+
+# Frontend
+FRONTEND_URL=http://localhost:3000
+REACT_APP_API_URL=http://localhost:8000/api
+```
+
+---
+
+## requirements.txt
+
+```
+Django==4.2.23
+djangorestframework==3.16.0
+psycopg2-binary==2.9.10
+django-cors-headers==4.7.0
+gunicorn==23.0.0
+requests==2.32.4
+python-dateutil==2.9.0.post0
+pytz==2025.2
+```
+
+---
+
+## .gitignore
+
+Include standard ignores for:
+- Python: __pycache__, *.pyc, .venv/, *.egg-info
+- Node: node_modules/, build/
+- Environment: .env, .env.production, .env.local
+- IDE: .vscode/, .idea/
+- Docker: postgres_data (if local)
+- Django: staticfiles/, db.sqlite3, media/
+
+---
+
+## CLAUDE.md
+
+Create a CLAUDE.md with:
+- Project overview (brief, 1-2 sentences — leave blank for user to fill in)
+- Architecture section listing the stack
+- Development commands: docker-compose up --build, migrate, createsuperuser
+- API routes summary
+- Note: Do not modify docker-compose.yml, Dockerfile, or start.sh unless explicitly asked
+
+---
+
+## Railway Deployment Notes
+
+This project is structured for Railway deployment:
+- Railway auto-detects the Dockerfile
+- Set all environment variables in Railway dashboard
+- Set ENVIRONMENT=production
+- Set PORT (Railway provides this automatically)
+- Database: use Railway's PostgreSQL add-on, set DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT from Railway's provided values
+- Frontend: deploy as separate Railway service or build into a static site served by Django (whitenoise)
+
+For serving React from Django in production (single-service deployment):
+- Add whitenoise to requirements.txt and middleware
+- Build React app and copy build output to Django's staticfiles
+- Add a catch-all URL pattern in Django to serve index.html for client-side routing
+
+---
+
+## What to Build First
+
+After this scaffold is set up and running:
+1. Verify docker-compose up --build starts all 3 services
+2. Create a superuser: docker-compose exec backend python manage.py createsuperuser
+3. Test signup flow in browser at localhost:3000
+4. Test login flow
+5. Verify protected routes redirect to login when not authenticated
+6. Verify token persists across page refreshes
+
+Then you're ready to start adding your actual application features — create new Django apps, add models, build API endpoints, and create React components.

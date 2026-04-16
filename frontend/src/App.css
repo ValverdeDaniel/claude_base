@@ -1,0 +1,379 @@
+/* Reset & Base */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #0a0a0a;
+  color: #ffffff;
+  line-height: 1.6;
+}
+
+a {
+  color: #218aff;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Layout */
+.page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  padding-top: 5rem;
+}
+
+/* Navbar */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  background-color: #1a1a1a;
+  border-bottom: 1px solid #333333;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  z-index: 100;
+}
+
+.navbar-brand {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.navbar-brand:hover {
+  text-decoration: none;
+}
+
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.navbar-links a {
+  color: #aaaaaa;
+  font-size: 0.9rem;
+}
+
+.navbar-links a:hover {
+  color: #ffffff;
+}
+
+.navbar-user {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: #aaaaaa;
+  font-size: 0.9rem;
+}
+
+/* Card */
+.card {
+  background-color: #1a1a1a;
+  border: 1px solid #333333;
+  border-radius: 8px;
+  padding: 2rem;
+  max-width: 420px;
+  margin: 2rem auto;
+}
+
+.card h2 {
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  text-align: center;
+}
+
+/* Forms */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: 0.875rem;
+  color: #aaaaaa;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  background-color: #0a0a0a;
+  border: 1px solid #333333;
+  border-radius: 4px;
+  color: #ffffff;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+  border-color: #218aff;
+}
+
+/* Buttons */
+.btn {
+  display: inline-block;
+  padding: 0.6rem 1.25rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-primary {
+  background-color: #218aff;
+  color: #ffffff;
+  width: 100%;
+}
+
+.btn-primary:hover {
+  background-color: #1a6fd4;
+}
+
+.btn-secondary {
+  background-color: #333333;
+  color: #ffffff;
+}
+
+.btn-secondary:hover {
+  background-color: #444444;
+}
+
+.btn-danger {
+  background-color: transparent;
+  color: #aaaaaa;
+  border: 1px solid #333333;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+.btn-danger:hover {
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+/* Messages */
+.error-message {
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  padding: 0.6rem 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+.success-message {
+  background-color: rgba(16, 185, 129, 0.1);
+  border: 1px solid #10b981;
+  color: #10b981;
+  padding: 0.6rem 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+/* Form footer links */
+.form-footer {
+  margin-top: 1.25rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: #aaaaaa;
+}
+
+.form-footer a {
+  color: #218aff;
+}
+
+/* Notes layout */
+.notes-layout {
+  display: flex;
+  height: calc(100vh - 56px - 4rem);
+  gap: 1px;
+  background-color: #333333;
+  border: 1px solid #333333;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.notes-sidebar {
+  width: 280px;
+  min-width: 280px;
+  background-color: #141414;
+  display: flex;
+  flex-direction: column;
+}
+
+.notes-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid #333333;
+}
+
+.notes-sidebar-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.notes-list {
+  list-style: none;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.notes-list-item {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid #1f1f1f;
+  transition: background-color 0.15s;
+}
+
+.notes-list-item:hover {
+  background-color: #1a1a1a;
+}
+
+.notes-list-item.active {
+  background-color: #1e2a3a;
+  border-left: 3px solid #218aff;
+}
+
+.notes-list-title {
+  display: block;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.notes-list-date {
+  display: block;
+  font-size: 0.75rem;
+  color: #666666;
+  margin-top: 0.2rem;
+}
+
+.notes-list-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: #666666;
+  font-size: 0.875rem;
+}
+
+.notes-editor {
+  flex: 1;
+  background-color: #0a0a0a;
+  display: flex;
+  flex-direction: column;
+}
+
+.notes-editor-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #333333;
+}
+
+.notes-title-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  outline: none;
+  padding: 0.25rem 0;
+}
+
+.notes-title-input::placeholder {
+  color: #555555;
+}
+
+.notes-editor-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.notes-saving {
+  font-size: 0.75rem;
+  color: #666666;
+}
+
+.notes-content-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #dddddd;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  padding: 1rem;
+  outline: none;
+  resize: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.notes-content-input::placeholder {
+  color: #555555;
+}
+
+.notes-empty-state {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666666;
+}
+
+.btn-sm {
+  padding: 0.35rem 0.7rem;
+  font-size: 0.8rem;
+}
+
+/* Profile page */
+.profile-container {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.profile-container h2 {
+  margin-bottom: 1.5rem;
+}
+
+.profile-field {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #333333;
+}
+
+.profile-field .label {
+  color: #aaaaaa;
+}
+
+/* Loading */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  color: #aaaaaa;
+}
