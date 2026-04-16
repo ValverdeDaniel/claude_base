@@ -71,4 +71,16 @@ export const getTests = () =>
 export const runTests = (testIds = []) =>
   apiClient.post('/admin/tests/run/', { test_ids: testIds });
 
+export const getTestRunStatus = (runId) =>
+  apiClient.get(`/admin/tests/runs/${runId}/status/`);
+
+export const getTestRunDetail = (runId) =>
+  apiClient.get(`/admin/tests/runs/${runId}/`);
+
+export const getTestRunHistory = () =>
+  apiClient.get('/admin/tests/runs/');
+
+export const cancelTestRun = (runId) =>
+  apiClient.post(`/admin/tests/runs/${runId}/cancel/`);
+
 export default apiClient;

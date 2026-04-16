@@ -52,7 +52,11 @@ Admin panel endpoints are under `/api/admin/` (app: `admin_panel`):
 | Method | Endpoint | Auth | Description |
 |--------|----------|------|-------------|
 | GET | `/api/admin/tests/` | Yes | List all discovered tests |
-| POST | `/api/admin/tests/run/` | Yes | Run tests (all or by ID) |
+| POST | `/api/admin/tests/run/` | Yes | Start a test run (async, returns run ID) |
+| GET | `/api/admin/tests/runs/` | Yes | List past test runs (history) |
+| GET | `/api/admin/tests/runs/<id>/status/` | Yes | Poll run progress (lightweight) |
+| POST | `/api/admin/tests/runs/<id>/cancel/` | Yes | Cancel an in-progress run |
+| GET | `/api/admin/tests/runs/<id>/` | Yes | Full run detail with all results |
 
 ## Notes
 

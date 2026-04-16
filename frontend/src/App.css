@@ -640,3 +640,261 @@ a:hover {
 .btn-icon:hover {
   color: #aaaaaa;
 }
+
+/* Admin tabs */
+.admin-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid #333333;
+  margin-bottom: 1.5rem;
+}
+
+.admin-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #aaaaaa;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.admin-tab:hover {
+  color: #ffffff;
+}
+
+.admin-tab.active {
+  color: #ffffff;
+  border-bottom-color: #218aff;
+}
+
+.admin-header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Checkbox */
+.test-checkbox {
+  accent-color: #218aff;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* Test results container */
+.test-results-container {
+  margin-bottom: 1.5rem;
+}
+
+/* Progress modal */
+.progress-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.progress-modal {
+  background-color: #1a1a1a;
+  border: 1px solid #333333;
+  border-radius: 8px;
+  padding: 2rem;
+  width: 480px;
+  max-width: 90vw;
+}
+
+.progress-modal h3 {
+  font-size: 1.25rem;
+  margin-bottom: 1.25rem;
+  text-align: center;
+}
+
+.progress-bar-track {
+  background-color: #333333;
+  border-radius: 4px;
+  height: 8px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.progress-bar-fill {
+  background-color: #218aff;
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.progress-pct {
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: #ffffff;
+}
+
+.progress-counters {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 1.25rem;
+}
+
+.progress-counter {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+}
+
+.progress-counter-count {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.progress-counter-label {
+  font-size: 0.8rem;
+  color: #666666;
+}
+
+.counter-pass .progress-counter-count {
+  color: #10b981;
+}
+
+.counter-fail .progress-counter-count {
+  color: #ef4444;
+}
+
+.progress-current-test {
+  text-align: center;
+  font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', monospace;
+  font-size: 0.8rem;
+  color: #888888;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.progress-bar-indeterminate {
+  animation: indeterminate 1.5s ease-in-out infinite;
+  opacity: 0.5;
+}
+
+@keyframes indeterminate {
+  0% { opacity: 0.3; }
+  50% { opacity: 0.6; }
+  100% { opacity: 0.3; }
+}
+
+.progress-setup-hint {
+  text-align: center;
+  color: #666666;
+  font-size: 0.85rem;
+  margin: 1rem 0 0;
+}
+
+.progress-cancel-btn {
+  display: block;
+  margin: 1.25rem auto 0;
+  width: auto;
+  padding: 0.5rem 2rem;
+}
+
+/* History */
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.history-empty {
+  text-align: center;
+  color: #666666;
+  padding: 3rem 1rem;
+  font-size: 0.95rem;
+}
+
+.history-item {
+  background-color: #1a1a1a;
+  border: 1px solid #333333;
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.history-item:hover {
+  background-color: #222222;
+}
+
+.history-item-active {
+  border-color: #218aff;
+  background-color: #1e2a3a;
+}
+
+.history-status {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 10px;
+  font-weight: 600;
+  text-transform: capitalize;
+  min-width: 80px;
+  text-align: center;
+}
+
+.badge-running {
+  background-color: rgba(33, 138, 255, 0.15);
+  color: #218aff;
+}
+
+.badge-pending {
+  background-color: rgba(102, 102, 102, 0.15);
+  color: #666666;
+}
+
+.history-rate {
+  font-weight: 700;
+  font-size: 0.95rem;
+  min-width: 45px;
+  text-align: center;
+}
+
+.rate-pass {
+  color: #10b981;
+}
+
+.rate-warn {
+  color: #f59e0b;
+}
+
+.rate-fail {
+  color: #ef4444;
+}
+
+.history-counts {
+  font-size: 0.85rem;
+  color: #aaaaaa;
+}
+
+.history-duration {
+  font-size: 0.8rem;
+  color: #666666;
+  font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', monospace;
+}
+
+.history-time {
+  margin-left: auto;
+  font-size: 0.8rem;
+  color: #666666;
+}
+
+.history-detail {
+  padding: 0.5rem 0;
+}
